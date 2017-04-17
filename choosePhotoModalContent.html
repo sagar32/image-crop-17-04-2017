@@ -1,0 +1,150 @@
+<div id="bbb">
+    <!--==> {{showMode}}-->
+    <div class="modal-header my-tab" style="border:0">
+        <ul class="nav nav-tabs nav-justified" ng-class="{'nav-stacked': vertical, 'nav-justified': justified}">
+            <li ng-class="{active: showMode=='Upload'}" class="uib-tab nav-item " heading="Upload">
+                <a href="" ng-click="showMode='Upload';files = [];picToUse = '';clear();" class="nav-link ng-binding">Upload <span ng-if="files.length > 0 && showMode=='Upload'"><small>(reset)</small></span></a>
+            </li>
+            <li ng-class="{active: showMode!='Upload'}" class="uib-tab nav-item" heading="Select">
+                <a href="" id="myselector" ng-click="showMode='Select';getProfileContent();getImgFormDB();" class="nav-link ng-binding">Select <span ng-if="showMode=='Selected'"><small>(reset)</small></span></a>                </li>
+        </ul>
+
+        <div style="position:absolute;top:5px;right:5px"><button class="btn btn-danger pull-right close" ng-click="cancel()">&times;</button></div>
+
+    </div>
+    <div class="modal-body" id="modal" style="height:auto;padding-top:0">
+
+
+
+        <div id="canvas" style="position:relative">
+            <div ng-show="showMode=='Upload'">
+                <div id="imageSizerDrop" ng-style="{'max-width':maxWidth+'px','max-height':(maxWidth/ratio)+'px'}" style=" width:100%;height:0;margin:auto; position: absolute; top: 0; left: 0; bottom: 0; right: 0;">
+                    <div ng-show="!showImg" ngf-drop ngf-select ng-change="chnageFile()" ng-model="userFile" class="drop-box2" ngf-fix-orientation="true"
+                        ngf-drag-over-class="'dragover'" ngf-multiple="false" ngf-allow-dir="true" accept="image/*" ng-style="{'max-width':(maxWidth+10)+'px'}"
+                        style="display:inline-block; width:100%; height:100%;">
+
+                        <span ng-show="files.length == 0">Click to select picture or drop here</span>
+                        <div class="croppedBoxedImage" style="width:100%; height:100%">
+
+                            <img dimention-class ngf-src="files[0]" />
+
+                            <span style="position:absolute;bottom:0;left:0;width:100%" class="progress" ng-show="progress >= 0 && progress < 100">
+                            <div style="width:{{progress}}%"
+                                 ng-bind="progress + '%'">hello</div>
+                        </span>
+                        </div>
+
+                    </div>
+                    <div>
+                        <!--<pan-zoom-url image-width="actWidth" image-height="actHeight" imageurl="files[0]" upload-function="getCropURL"></pan-zoom-url>-->
+
+                        <div>
+                            <!--<button ng-click="test()">add</button>
+                            <button ng-click="get()">get</button>-->
+                            <!--<input type="file" file-model="myFile" />-->
+                            <!--<image-cropper image-url="{{ files[0] | convertToSrc}}"-->
+                            <!--<image-cropper ng-if="showImg" image-url="{{imgBase64}}" width="640" height="480" show-controls="{{vm.showControls}}" fit-on-init="false"
+                                center-on-init="true" api="vm.cropperApi" crop-callback="vm.updateResultImage" action-labels="vm.myButtonLabels"></image-cropper>-->
+                            <!--<img src="{{imgBase64}}" ng-init="zoomWidth = 100;imgStyle = {width:'100px'}" ng-style="imgStyle" ng-mouse-wheel-up="zoomWidth = zoomWidth + 20; imgStyle.width = zoomWidth +'px'; "
+                                ng-mouse-wheel-down="zoomWidth = zoomWidth - 20;imgStyle.width = zoomWidth  +'px'; " />-->
+                            <codeapp-image-cropper ng-if="showImg" image-url="{{imgBase64}}" api="codeAppCroper"></codeapp-image-cropper>
+
+                            <div class="result">
+                                <img class="frame" ng-src="{{resultImage}}">
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-show="showMode=='Upload' && files" class="pull-right" style="margin-bottom:10px">
+                        <!--ng-disabled="isLoading  || cropImgLoadedURL()"-->
+                        <button class="btn btn-primary" ng-click="UseImage();setView();">
+            <span ng-show="!isLoading">Use Picture </span>
+            <!--<img ng-if="isLoading" src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA==" />-->
+        </button>
+                        <button class="btn btn-default" ng-click="cancel()"> Cancel </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div ng-show="showMode=='Select'">
+                <div class="row">
+                    <div class="col-md-3" dir-paginate="c in todos |  itemsPerPage: mostPics">
+                        <div class="thumbnail">
+                            <i ng-click="deleteTodo(c.id)" class="fa fa-times userImgClose" aria-hidden="true"></i>
+
+                            <img src="{{c.cropImage}}" alt="click for modification" ng-click="setPicToUseByCodeApp(c.id,c.originalImage,c.cropImage);"
+                                style="width:100%">
+
+                        </div>
+                    </div>
+
+                </div>
+
+
+
+
+                <!--<div>
+                    <ul class="list-inline" style="display: inline-block; text-align: center">
+                        <li dir-paginate="c in todos |  itemsPerPage: mostPics" class="alb-thumbnail" style="display: inline-block;text-align: center;width: 100px;">
+                            <span ng-click="deleteTodo(c.id)">
+                                <img src="assets/img/Delete.png" style="border-radius: 50%;float: right;height:16px;left: 5px;padding: 2px;position: relative;top: -2px;width: 16px;background:#fff;" />
+                                <i style="float: right;position:relative;color:#f9f9f9;cursor:pointer;right: 13px;top: 2px;" class="fa fa-times" aria-hidden="true"></i>
+
+                            </span>
+                            <img class="img-responsive img-thumbnail" src="{{c.cropImage}}" style="margin: auto; height: 80px; display:inline-block"
+                                ng-click="setPicToUseByCodeApp(c.id,c.originalImage,c.cropImage);">
+                        </li>
+                    </ul>
+                </div>-->
+                <div style="text-align: center">
+                    <dir-pagination-controls max-size="6"></dir-pagination-controls>
+                </div>
+
+                <!--<div id="existingPics">
+                    <div ng-show="contents.length ==0">You do not have any uploaded pictures, please upload a new photo.</div>
+                    <div>
+                        <ul class="list-inline" style="display: inline-block; text-align: center">
+                            <li dir-paginate="c in contents | filter: {Data:{Type:'photo'}} | itemsPerPage: mostPics" ng-class="{selectedPic:picToUse==c.Data}"
+                                class="alb-thumbnail" style="height: 74px; width:120px">
+                                <img class="img-responsive" picture-uri-from-photo-id-directive="c.Data.Value" style="margin: auto; height: 64px; display:inline-block"
+                                    ng-click="setPicToUse(c.Data);">
+
+                            </li>
+                            <li>
+                                here
+                                <img class="img-responsive" picture-uri-from-photo-id-directive="401" style="margin: auto; height: 64px; display:inline-block"
+                                    ng-click="setPicToUse(c.Data);">
+                            </li>
+                        </ul>
+                    </div>
+                    <div style="text-align: center">
+                        <dir-pagination-controls max-size="6"></dir-pagination-controls>
+                    </div>
+                </div>-->
+            </div>
+            <div ng-show="showMode=='Selected'">
+                <div id="imageSizer" ng-style="{'max-width':maxWidth+'px','max-height':(maxWidth/ratio)+'px'}" style=" margin: auto; padding:10px;position: absolute; top: 0; left: 0; bottom: 0; right: 0; width:100%;height:0;box-sizing:content-box">
+                    <div class="" style="width:100%; height:100%;">
+                        <button class="btn btn-success" ng-click="setOrignal()">Use {{ isSetOrignal?'Crop Image':'Original Image'}}</button>
+                        <!--<image-cropper ng-if="showImg" image-url="{{imgBase64selected}}" width="640" height="480" show-controls="{{vm.showControls}}"
+                            fit-on-init="false" center-on-init="true" api="vm.cropperApi" crop-callback="updateResultImage" action-labels="myButtonLabels"></image-cropper>-->
+                        <codeapp-image-cropper ng-if="showImgSelected" image-url="{{imgBase64selected}}" api="codeAppCroper"></codeapp-image-cropper>
+
+                        <!--<pan-zoom id="panZoomer" ng-model="pzer" image-width="actWidth" image-height="actHeight" image-blug="picToUse.Value" upload-function="getCrop"></pan-zoom>-->
+                        <div class="result">
+                            <img class="frame" ng-src="{{resultImageSelect}}">
+                        </div>
+                        <div ng-show="showMode=='Selected'" class="pull-right" style="margin-bottom:10px">
+                            <button class="btn btn-primary" ng-click="UpdateImageAbhay(currId);setView();">
+            <span ng-show="!isLoading">Set Picture</span>
+            <img ng-if="isLoading" src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA==" />
+        </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
